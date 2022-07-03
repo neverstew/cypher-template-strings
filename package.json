@@ -1,0 +1,39 @@
+{
+  "name": "cypher-template-strings",
+  "version": "0.1.0",
+  "description": "ES6 tagged template strings for prepared statements with neo4j",
+  "main": "dist/index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/matt-l-w/cypher-template-strings.git"
+  },
+  "keywords": [
+    "neo4j",
+    "cypher",
+    "prepared",
+    "statements",
+    "string",
+    "literal",
+    "tagged",
+    "template",
+    "es6"
+  ],
+  "author": "matt-l-w",
+  "license": "ISC",
+  "types": "./dist/index.d.ts",
+  "bugs": {
+    "url": "https://github.com/matt-l-w/cypher-template-strings/issues"
+  },
+  "homepage": "https://github.com/matt-l-w/cypher-template-strings#readme",
+  "scripts": {
+    "build": "tsup",
+    "test": "jest"
+  },
+  "devDependencies": {
+    "@types/jest": "^28.1.4",
+    "jest": "^28.1.2",
+    "ts-jest": "^28.0.5",
+    "tsup": "^6.1.3",
+    "typescript": "^4.7.4"
+  }
+}
