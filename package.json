@@ -1,9 +1,11 @@
 {
   "name": "cypher-template-strings",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "ES6 tagged template strings for prepared statements with neo4j",
   "main": "dist/index.js",
-  "files": ["dist/**/*"],
+  "files": [
+    "dist/**/*"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/matt-l-w/cypher-template-strings.git"
