@@ -73,5 +73,5 @@ Feel free! This is just getting started.
 
 ## Improvements
 
-[ ] Convert some js types into standard serializable types e.g. Date
-[ ] Strongly type params for better inspection
+- [ ] Convert some js types into standard serializable types e.g. Date
+- [ ] Strongly type params for better inspection
