@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import cypher from '.';
+import cypher from './index';
 
 describe('cypher', () => {
   const template = cypher`a ${1} b ${'str'} c ${[1, 2]} d ${{
