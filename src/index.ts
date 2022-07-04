@@ -1,18 +1,18 @@
 type Output = {
-  query: string;
-  params: Record<string, any>;
+  text: string;
+  parameters: Record<string, any>;
 };
 
 function shiftOutput(input: Output, by: number): Output {
-  const { query, params } = input;
-  const newQuery = query.replace(/p_(\d+)/g, (_, match) => `p_${Number(match) + by}`)
+  const { text, parameters } = input;
+  const newQuery = text.replace(/p_(\d+)/g, (_, match) => `p_${Number(match) + by}`)
   const newParams = Object.fromEntries(Object
-    .entries(params)
+    .entries(parameters)
     .map(([k, v]) => ([`p_${Number(k.slice(2)) + by}`, v]))
   )
   return {
-    query: newQuery,
-    params: newParams,
+    text: newQuery,
+    parameters: newParams,
   }
 }
 
@@ -24,7 +24,7 @@ type ParserState = Output & {
 
 function parseTemplate(state: ParserState): ParserState {
   const { strings, expressions } = state;
-  let { query, params, i } = state;
+  let { text, parameters, i } = state;
   const totalParams = strings.length;
   const initialI = i.valueOf();
   for (i; i < initialI + totalParams; i++) {
@@ -33,41 +33,41 @@ function parseTemplate(state: ParserState): ParserState {
     const param = expressions[index];
 
     if (!!string || typeof param !== 'undefined' || param !== null) {
-      query += string;
+      text += string;
       if (typeof param !== 'undefined' && param !== null) {
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
         if (!isCypherOutput(param)) {
           const paramName = `$p_${i}`;
-          query += paramName;
-          params[`p_${i}`] = param;
+          text += paramName;
+          parameters[`p_${i}`] = param;
         } else {
-          const { query: shiftedNestedQuery, params: shiftedNestedParams } =
+          const { text: shiftedNestedQuery, parameters: shiftedNestedParams } =
             shiftOutput(param, i);
-          query += shiftedNestedQuery
-          params = { ...params, ...shiftedNestedParams };
+          text += shiftedNestedQuery
+          parameters = { ...parameters, ...shiftedNestedParams };
         }
       }
     }
   }
 
-  return { query, params, i, strings, expressions };
+  return { text, parameters, i, strings, expressions };
 }
 
 export default function cypher(
   strings: TemplateStringsArray,
   ...expressions: unknown[]
 ): Output {
-  const { query, params } = parseTemplate({
-    query: '',
-    params: {},
+  const { text, parameters } = parseTemplate({
+    text: '',
+    parameters: {},
     i: 0,
     strings,
     expressions,
   });
 
   return {
-    query,
-    params,
+    text,
+    parameters,
   };
 }
 
@@ -77,5 +77,5 @@ function isCypherOutput(input: unknown): input is Output {
   if (Array.isArray(input)) return false;
   if (typeof input !== 'object') return false;
   const paramKeys = Object.getOwnPropertyNames(input);
-  return paramKeys[0] === 'query' && paramKeys[1] === 'params';
+  return paramKeys[0] === 'text' && paramKeys[1] === 'parameters';
 }
