@@ -1,81 +1,109 @@
-type Output = {
-  text: string;
-  parameters: Record<string, any>;
-};
+type ParamKey = `p_${number}`;
+type ParamText = `$${ParamKey}`;
 
-function shiftOutput(input: Output, by: number): Output {
-  const { text, parameters } = input;
-  const newQuery = text.replace(/p_(\d+)/g, (_, match) => `p_${Number(match) + by}`)
-  const newParams = Object.fromEntries(Object
-    .entries(parameters)
-    .map(([k, v]) => ([`p_${Number(k.slice(2)) + by}`, v]))
-  )
-  return {
-    text: newQuery,
-    parameters: newParams,
-  }
-}
-
-type ParserState = Output & {
-  i: number;
-  strings: TemplateStringsArray;
+type Input = {
+  strings: string[];
   expressions: unknown[];
 };
 
-function parseTemplate(state: ParserState): ParserState {
-  const { strings, expressions } = state;
-  let { text, parameters, i } = state;
-  const totalParams = strings.length;
-  const initialI = i.valueOf();
-  for (i; i < initialI + totalParams; i++) {
-    const index = i - initialI;
-    const string = strings[index];
-    const param = expressions[index];
+type Output = {
+  text: string;
+  parameters: Record<ParamKey, any>;
+  i: number;
+};
+type ParameterEntries = [ParamKey, any][];
 
-    if (!!string || typeof param !== 'undefined' || param !== null) {
-      text += string;
-      if (typeof param !== 'undefined' && param !== null) {
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        if (!isCypherOutput(param)) {
-          const paramName = `$p_${i}`;
-          text += paramName;
-          parameters[`p_${i}`] = param;
-        } else {
-          const { text: shiftedNestedQuery, parameters: shiftedNestedParams } =
-            shiftOutput(param, i);
-          text += shiftedNestedQuery
-          parameters = { ...parameters, ...shiftedNestedParams };
-        }
-      }
-    }
-  }
-
-  return { text, parameters, i, strings, expressions };
+function isOutput(input: unknown): input is Output {
+  if (typeof input === "undefined") return false;
+  if (input === null) return false;
+  if (Array.isArray(input)) return false;
+  if (typeof input !== "object") return false;
+  const paramKeys = Object.getOwnPropertyNames(input);
+  return (
+    paramKeys[0] === "text" &&
+    paramKeys[1] === "parameters" &&
+    paramKeys[2] === "i"
+  );
 }
 
 export default function cypher(
   strings: TemplateStringsArray,
-  ...expressions: unknown[]
+  ...expressions: Input["expressions"]
 ): Output {
-  const { text, parameters } = parseTemplate({
-    text: '',
-    parameters: {},
-    i: 0,
-    strings,
-    expressions,
+  const { output } = parseTemplate({
+    input: {
+      strings: [...strings],
+      expressions,
+    },
+    output: {
+      text: "",
+      parameters: {},
+      i: -1,
+    },
   });
 
+  return output;
+}
+
+type ParserState = {
+  input: Input;
+  output: Output;
+};
+
+function parseTemplate({
+  input: { strings, expressions },
+  output: { text, parameters, i },
+}: ParserState): ParserState {
+  const [headString, ...tailStrings] = strings;
+  const [headParam, ...tailParams] = expressions;
+
+  if (headString === undefined) {
+    return {
+      input: { strings, expressions },
+      output: { text, parameters, i: i - 1 },
+    };
+  }
+
+  let nextText = (text += headString);
+  let nextParams = { ...parameters };
+  let nextI = Number(i) + 1;
+  if (!isUndefinedOrNull(headParam)) {
+    if (isOutput(headParam)) {
+      const { text, parameters, i: paramI } = shiftParameters(headParam, nextI);
+      nextText += text;
+      nextParams = { ...nextParams, ...parameters };
+      nextI = paramI;
+    } else {
+      const paramText: ParamText = `$p_${nextI}`;
+      const paramKey: ParamKey = `p_${nextI}`;
+      nextText += paramText;
+      nextParams = { ...nextParams, [paramKey]: headParam };
+    }
+  }
+  return parseTemplate({
+    input: { strings: tailStrings, expressions: tailParams },
+    output: { text: nextText, parameters: nextParams, i: nextI },
+  });
+}
+
+export function shiftParameters(output: Output, shift: number): Output {
+  const newText = output.text.replace(
+    /p_(\d+)/g,
+    (_, match) => `p_${Number(match) + shift}`
+  );
+  const floor = Math.max(output.i, 0);
+  const newParams: ParameterEntries = [];
+  for (const [k, v] of Object.entries(output.parameters)) {
+    const i = Number(k.slice(2));
+    newParams.push([`p_${i + shift}`, v]);
+  }
   return {
-    text,
-    parameters,
+    text: newText,
+    parameters: Object.fromEntries(newParams),
+    i: floor + shift,
   };
 }
 
-function isCypherOutput(input: unknown): input is Output {
-  if (typeof input === 'undefined') return false
-  if (input === null) return false
-  if (Array.isArray(input)) return false;
-  if (typeof input !== 'object') return false;
-  const paramKeys = Object.getOwnPropertyNames(input);
-  return paramKeys[0] === 'text' && paramKeys[1] === 'parameters';
+function isUndefinedOrNull(x: any): x is undefined | null {
+  return typeof x === "undefined" || x === null;
 }
