@@ -8,7 +8,7 @@ describe("cypher", () => {
   it("should provide the query with the replaced parameters", () => {
     expect(template).toEqual(
       expect.objectContaining({
-        text: "a $p_0 b $p_1 c $p_2 d $p_3 e $p_4 f $p_5 g",
+        query: "a $p_0 b $p_1 c $p_2 d $p_3 e $p_4 f $p_5 g",
       })
     );
   });
@@ -16,7 +16,7 @@ describe("cypher", () => {
   it("should provide parameters to match the query", () => {
     expect(template).toEqual(
       expect.objectContaining({
-        parameters: {
+        params: {
           p_0: 1,
           p_1: "str",
           p_2: [1, 2],
@@ -30,8 +30,8 @@ describe("cypher", () => {
 
   it("should return empty params when no expressions", () => {
     expect(cypher`no params`).toEqual({
-      text: "no params",
-      parameters: {},
+      query: "no params",
+      params: {},
       i: -1,
     });
   });
@@ -40,16 +40,16 @@ describe("cypher", () => {
     expect(
       cypher`a = ${1}, ${cypher`then ${2} ${cypher`and finally ${3}`} with sibling ${4}`}`
     ).toEqual({
-      text: "a = $p_0, then $p_1 and finally $p_2 with sibling $p_3",
-      parameters: { p_0: 1, p_1: 2, p_2: 3, p_3: 4 },
+      query: "a = $p_0, then $p_1 and finally $p_2 with sibling $p_3",
+      params: { p_0: 1, p_1: 2, p_2: 3, p_3: 4 },
       i: 3,
     });
   });
 
   it("should not include undefined or null expressions", () => {
     expect(cypher`test ${undefined}${null}`).toEqual({
-      text: "test ",
-      parameters: {},
+      query: "test ",
+      params: {},
       i: 1,
     });
   });
@@ -57,8 +57,8 @@ describe("cypher", () => {
   it("should maintain ordering across multiple contexts", () => {
     const otherGenerator = (b: number, c: number) => cypher`b = ${b}, c = ${c}`;
     expect(cypher`a = ${1}, ${otherGenerator(2, 3)}, d = ${4}`).toEqual({
-      text: "a = $p_0, b = $p_1, c = $p_2, d = $p_3",
-      parameters: { p_0: 1, p_1: 2, p_2: 3, p_3: 4 },
+      query: "a = $p_0, b = $p_1, c = $p_2, d = $p_3",
+      params: { p_0: 1, p_1: 2, p_2: 3, p_3: 4 },
       i: 3,
     });
   });
