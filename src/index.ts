@@ -9,8 +9,8 @@ type Input = {
 };
 
 export type Output = {
-  query: string;
-  params: Record<ParamKey, any>;
+  text: string;
+  parameters: Record<ParamKey, any>;
   i: number;
 };
 export type ParameterEntries = [ParamKey, any][];
@@ -22,8 +22,8 @@ function isOutput(input: unknown): input is Output {
   if (typeof input !== "object") return false;
   const paramKeys = Object.getOwnPropertyNames(input);
   return (
-    paramKeys[0] === "query" &&
-    paramKeys[1] === "params" &&
+    paramKeys[0] === "text" &&
+    paramKeys[1] === "parameters" &&
     paramKeys[2] === "i"
   );
 }
@@ -38,8 +38,8 @@ export default function cypher(
       expressions,
     },
     output: {
-      query: "",
-      params: {},
+      text: "",
+      parameters: {},
       i: -1,
     },
   });
@@ -54,7 +54,7 @@ type ParserState = {
 
 function parseTemplate({
   input: { strings, expressions },
-  output: { query: text, params: parameters, i },
+  output: { text, parameters, i },
 }: ParserState): ParserState {
   const [headString, ...tailStrings] = strings;
   const [headParam, ...tailParams] = expressions;
@@ -62,7 +62,7 @@ function parseTemplate({
   if (headString === undefined) {
     return {
       input: { strings, expressions },
-      output: { query: text, params: parameters, i: i - 1 },
+      output: { text, parameters, i: i - 1 },
     };
   }
 
@@ -71,7 +71,7 @@ function parseTemplate({
   let nextI = Number(i) + 1;
   if (!isUndefinedOrNull(headParam)) {
     if (isOutput(headParam)) {
-      const { query: text, params: parameters, i: paramI } = shiftParameters(headParam, nextI);
+      const { text, parameters, i: paramI } = shiftParameters(headParam, nextI);
       nextText += text;
       nextParams = { ...nextParams, ...parameters };
       nextI = paramI;
@@ -84,7 +84,7 @@ function parseTemplate({
   }
   return parseTemplate({
     input: { strings: tailStrings, expressions: tailParams },
-    output: { query: nextText, params: nextParams, i: nextI },
+    output: { text: nextText, parameters: nextParams, i: nextI },
   });
 }
 
