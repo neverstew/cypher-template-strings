@@ -1,6 +1,6 @@
 {
   "name": "cypher-template-strings",
-  "version": "0.5.3",
+  "version": "0.5.4",
   "description": "ES6 tagged template strings for prepared statements with neo4j",
   "exports": {
     "types": "./dist/index.d.ts",
