@@ -28,7 +28,7 @@ function isOutput(input: unknown): input is Output {
   );
 }
 
-export default function cypher(
+export function cypher(
   strings: TemplateStringsArray,
   ...expressions: Input["expressions"]
 ): Output {
@@ -46,6 +46,7 @@ export default function cypher(
 
   return output;
 }
+export default cypher;
 
 type ParserState = {
   input: Input;
