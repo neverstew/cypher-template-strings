@@ -70,17 +70,17 @@ function parseTemplate({
   let nextParams = { ...parameters };
   let nextI = Number(i) + 1;
   if (!isUndefinedOrNull(headParam)) {
-    if (isOutput(headParam)) {
-      const { text, parameters, i: paramI } = shiftParameters(headParam, nextI);
-      nextText += text;
-      nextParams = { ...nextParams, ...parameters };
-      nextI = paramI;
-    } else {
-      const paramText: ParamText = `$p_${nextI}`;
-      const paramKey: ParamKey = `p_${nextI}`;
-      nextText += paramText;
-      nextParams = { ...nextParams, [paramKey]: headParam };
-    }
+    const toCombine: Output = isOutput(headParam)
+      ? headParam
+      : {
+          i: 0,
+          text: "$p_0",
+          parameters: { p_0: headParam },
+        };
+    const { text, parameters, i: paramI } = shiftParameters(toCombine, nextI);
+    nextText += text;
+    nextParams = { ...nextParams, ...parameters };
+    nextI = paramI;
   }
   return parseTemplate({
     input: { strings: tailStrings, expressions: tailParams },
