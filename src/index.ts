@@ -123,9 +123,7 @@ function outputify<T>(value: T): Output {
 }
 
 // Experimental
-let conversionOn = true;
 function convertValue<T>(value: T): Output {
-  if (!conversionOn) return outputify(value);
   if (value instanceof Date) return convertDatetime(value);
   return outputify(value);
 }
