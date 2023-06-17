@@ -1,5 +1,6 @@
-import { Output, ParameterEntries } from "./index";
+import { Output, ParamKey } from "./index";
 
+type ParameterEntries = [ParamKey, any][];
 
 export function shiftParameters(output: Output, shift: number): Output {
   const newText = output.text.replace(

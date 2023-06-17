@@ -1,6 +1,6 @@
 import { shiftParameters } from "./shiftParameters";
 
-type ParamKey = `p_${number}`;
+export type ParamKey = `p_${number}`;
 type ParamText = `$${ParamKey}`;
 
 type Input = {
@@ -13,7 +13,6 @@ export type Output = {
   parameters: Record<ParamKey, any>;
   i: number;
 };
-export type ParameterEntries = [ParamKey, any][];
 
 function isOutput(input: unknown): input is Output {
   if (typeof input === "undefined") return false;
