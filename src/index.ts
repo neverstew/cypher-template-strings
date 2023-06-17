@@ -1,7 +1,6 @@
 import { shiftParameters } from "./shiftParameters";
 
 export type ParamKey = `p_${number}`;
-type ParamText = `$${ParamKey}`;
 
 type Input = {
   strings: string[];
@@ -47,14 +46,36 @@ export function cypher(
 }
 export default cypher;
 
+export const magiccypher: typeof cypher = (strings, ...expressions) => {
+  const { output } = parseTemplate({
+    input: {
+      strings: [...strings],
+      expressions,
+    },
+    output: {
+      text: "",
+      parameters: {},
+      i: -1,
+    },
+    options: { convertValues: true },
+  });
+
+  return output;
+}
+
+type ParserOptions = {
+  convertValues: boolean;
+};
 type ParserState = {
   input: Input;
   output: Output;
+  options?: ParserOptions;
 };
 
 function parseTemplate({
   input: { strings, expressions },
   output: { text, parameters, i },
+  options = { convertValues: false },
 }: ParserState): ParserState {
   const [headString, ...tailStrings] = strings;
   const [headParam, ...tailParams] = expressions;
@@ -63,6 +84,7 @@ function parseTemplate({
     return {
       input: { strings, expressions },
       output: { text, parameters, i: i - 1 },
+      options,
     };
   }
 
@@ -72,11 +94,10 @@ function parseTemplate({
   if (!isUndefinedOrNull(headParam)) {
     const toCombine: Output = isOutput(headParam)
       ? headParam
-      : {
-          i: 0,
-          text: "$p_0",
-          parameters: { p_0: headParam },
-        };
+      : options.convertValues
+      ? convertValue(headParam)
+      : outputify(headParam);
+
     const { text, parameters, i: paramI } = shiftParameters(toCombine, nextI);
     nextText += text;
     nextParams = { ...nextParams, ...parameters };
@@ -85,9 +106,34 @@ function parseTemplate({
   return parseTemplate({
     input: { strings: tailStrings, expressions: tailParams },
     output: { text: nextText, parameters: nextParams, i: nextI },
+    options,
   });
 }
 
 function isUndefinedOrNull(x: any): x is undefined | null {
   return typeof x === "undefined" || x === null;
+}
+
+function outputify<T>(value: T): Output {
+  return {
+    i: 0,
+    text: "$p_0",
+    parameters: { p_0: value },
+  };
+}
+
+// Experimental
+let conversionOn = true;
+function convertValue<T>(value: T): Output {
+  if (!conversionOn) return outputify(value);
+  if (value instanceof Date) return convertDatetime(value);
+  return outputify(value);
+}
+
+function convertDatetime(value: Date): Output {
+  return {
+    i: 0,
+    text: "datetime($p_0)",
+    parameters: { p_0: value.toISOString() },
+  };
 }
