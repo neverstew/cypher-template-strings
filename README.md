@@ -2,6 +2,17 @@
 
 An easy way to use tagged template strings to construct cypher queries for the official [neo4j-javascript-driver](https://github.com/neo4j/neo4j-javascript-driver).
 
+## Importing
+```js
+// with ES6
+import cypher from 'cypher-template-strings'
+import { cypher } from 'cypher-template-strings'
+
+// with CommonJS
+const { cypher } = require('cypher-template-strings');
+const cypher = require('cypher-template-strings').default;
+```
+
 ## Examples
 
 ```js

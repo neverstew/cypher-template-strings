@@ -2,7 +2,10 @@
   "name": "cypher-template-strings",
   "version": "0.5.1",
   "description": "ES6 tagged template strings for prepared statements with neo4j",
-  "main": "./dist/index.js",
+  "exports": {
+    "import": "./dist/index.mjs",
+    "require": "./dist/index.js"
+  },
   "types": "./dist/index.d.ts",
   "files": [
     "dist/"
@@ -29,7 +32,7 @@
   },
   "homepage": "https://github.com/matt-l-w/cypher-template-strings#readme",
   "scripts": {
-    "build": "tsc",
+    "build": "tsup src/index.ts --dts --format esm,cjs",
     "test": "jest",
     "prepublishOnly": "npm run build"
   },
@@ -37,7 +40,7 @@
     "@types/jest": "^28.1.4",
     "jest": "^28.1.2",
     "ts-jest": "^28.0.5",
-    "tsup": "^6.7.0",
+    "tsup": "^7.0.0",
     "typescript": "^4.7.4"
   }
 }
